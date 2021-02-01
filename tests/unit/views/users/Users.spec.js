@@ -9,7 +9,7 @@ const router = new VueRouter()
 
 localVue.use(CoreuiVue)
 
-describe('Users.vue', () => {
+describe('UsersModal.vue', () => {
   it('has a name', () => {
     expect(Users.name).toBe('Users')
   })

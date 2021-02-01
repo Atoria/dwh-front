@@ -201,7 +201,8 @@ export default {
     }
   },
   mounted() {
-    this.getUsers();
+    this.$store.dispatch('getUsers');
+    // this.getUsers();
     this.getData();
   }
 }

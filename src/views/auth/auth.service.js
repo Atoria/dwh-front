@@ -15,5 +15,16 @@ export class AuthService {
         return Vue.http.get(AppSettings.getUrl() + '/user');
     }
 
+    static updateUser(user) {
+        return Vue.http.put(AppSettings.getUrl() + '/user', {user});
+    }
+
+    static deleteUser(id) {
+        return Vue.http.delete(AppSettings.getUrl() + '/user/' + id,);
+    }
+
+    static triggerDel(id) {
+        return Vue.http.post(AppSettings.getUrl() + '/user/trigger-del', {id})
+    }
 
 }

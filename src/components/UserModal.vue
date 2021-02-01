@@ -37,7 +37,7 @@
           <CSelect
               :value.sync="userModal.model.role"
               label="Report Color"
-              :options="['User','Admin']"
+              :options="['User','Admin', 'Developer']"
               placeholder="Select User Role"
           />
         </CCol>
@@ -98,9 +98,6 @@ export default {
     userModal: state => state.userModal,
   }),
   methods: {
-    test() {
-      console.log(111);
-    },
     isValid() {
       return this.userModal.model.first_name &&
           this.userModal.model.last_name &&
@@ -113,7 +110,6 @@ export default {
       this.error = '';
 
       if (!this.isValid()) {
-        console.log(1111);
         this.hasErrors = true;
         this.error = 'Please Fill All Fields'
         return;
@@ -122,6 +118,7 @@ export default {
       AuthService.register(this.userModal.model).then((response) => {
         if (response.body.success) {
           this.$store.commit('hideUserModal')
+          this.$store.dispatch('getUsers');
         } else {
           this.hasErrors = true;
           this.error = 'User can not be saved';

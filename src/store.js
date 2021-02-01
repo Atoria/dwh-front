@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
+import {AuthService} from "@/views/auth/auth.service";
 
 Vue.use(Vuex)
 
@@ -33,6 +34,7 @@ const state = {
             fields: []
         }
     },
+    showUsersModal: false,
     users: []
 }
 
@@ -58,7 +60,7 @@ const mutations = {
                     field_name: payload[`field${i}_name`],
                     field_default: payload[`field${i}_default`]
                 };
-                state.reportModal.model.fields[i-1] = obj
+                state.reportModal.model.fields[i - 1] = obj
             }
         } else {
             state.reportModal.model = {
@@ -101,7 +103,19 @@ const mutations = {
     }
 }
 
+
+const actions = {
+    getUsers({ commit }, payload) {
+        AuthService.getUsers().then((response) => {
+            commit("set", ['users' , response.body.data]);
+        })
+
+    }
+}
+
+
 export default new Vuex.Store({
     state,
-    mutations
+    mutations,
+    actions
 })

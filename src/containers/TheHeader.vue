@@ -8,6 +8,7 @@
 
     </CHeaderNav>
     <CHeaderNav class="mr-4">
+      <CButton color="dark" class="px-4 mr-3" @click="displayUsersModal" v-if="showAddUser">Users</CButton>
       <CButton color="dark" class="px-4 mr-3" @click="displayUserModal" v-if="showAddUser">Add User</CButton>
       <CButton color="dark" class="px-4 mr-3" @click="displayModal" v-if="showAddReport">Add Report</CButton>
       <CButton color="danger" class="px-4" @click="logout">Logout</CButton>
@@ -15,8 +16,8 @@
 
 
     <report-modal/>
-
-    <user-modal></user-modal>
+    <user-modal/>
+    <users-modal/>
 
   </CHeader>
 </template>
@@ -26,11 +27,12 @@ import TheHeaderDropdownAccnt from './TheHeaderDropdownAccnt'
 import ReportModal from "@/components/ReportModal";
 import {ReportsService} from "@/views/report/reports.service";
 import UserModal from "@/components/UserModal";
+import UsersModal from "@/components/UsersModal";
 
 export default {
   name: 'TheHeader',
   components: {
-    TheHeaderDropdownAccnt, ReportModal, UserModal
+    TheHeaderDropdownAccnt, ReportModal, UserModal, UsersModal
   },
   data() {
     return {}
@@ -58,7 +60,7 @@ export default {
       }
       user = user.user
       return user.role === 'Admin' || user.role === 'Developer'
-    }
+    },
   },
   methods: {
     logout() {
@@ -70,10 +72,12 @@ export default {
     },
     displayModal() {
       this.$store.commit('showReportModal')
-
+    },
+    displayUsersModal() {
+      this.$store.commit('set', ['showUsersModal', true])
     },
     navigateHome() {
-      if(this.$route.name !== 'Dashboard'){
+      if (this.$route.name !== 'Dashboard') {
         this.$router.push({name: 'Dashboard'})
       }
     }

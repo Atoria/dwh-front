@@ -65,7 +65,8 @@ export default {
             return user.role === 'User' && (`${user.first_name} ${user.last_name}`.toLowerCase().includes(this.search.toLowerCase()))
           }
       )
-    }
+    },
+
   },
   methods: {
     getUserName(user) {
