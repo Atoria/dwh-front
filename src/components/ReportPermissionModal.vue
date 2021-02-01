@@ -6,11 +6,14 @@
   >
 
     <div class="col-sm-12" v-if="permissionModal.show">
-      <CInput
-          placeholder="Search Report"
-          v-model="search"
-      />
 
+      <CInput placeholder="Search User" v-model="search">
+        <template #prepend-content>
+          <CIcon name="cil-magnifying-glass"/>
+        </template>
+      </CInput>
+
+      <hr>
       <div class="row mb-2" v-for="user of getUsers">
         <div class="col-sm-8">
           {{ getUserName(user) }}
@@ -26,9 +29,9 @@
     </div>
 
     <template v-slot:footer>
-      <CButton color="primary" @click="save">Save</CButton>
+      <CButton color="success" @click="save">Save</CButton>
       <CButton
-          color="secondary"
+          color="danger"
           @click="(value) => $store.commit('hidePermissionModal')"
       >Cancel
       </CButton>

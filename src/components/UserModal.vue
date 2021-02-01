@@ -62,9 +62,9 @@
     <CAlert v-if="hasErrors" show color="danger" class="mt-4">{{ error }}</CAlert>
 
     <template v-slot:footer>
-      <CButton color="primary" @click="save">Save</CButton>
+      <CButton color="success" @click="save">Save</CButton>
       <CButton
-          color="secondary"
+          color="danger"
           @click="(value) => $store.commit('hideUserModal')"
       >Cancel
       </CButton>

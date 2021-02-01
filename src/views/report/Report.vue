@@ -3,10 +3,11 @@
 
     <CCard>
       <CCardHeader>
-        <p class="d-inline-block mt-1">Sample Structure for '{{ report.report_name }}'</p>
+        <h5 class="d-inline-block mt-1 pt-2 red d-inline-block mr-1">Sample Structure for </h5>
+        <h6 class="d-inline-block color-red"><i> '{{ report.report_name }}'</i></h6>
 
 
-        <CButton size="lg" color="dark" class="px-4 float-right mt-2" @click="importData">Import Excel</CButton>
+        <CButton color="dark" class="px-4 float-right mt-2" @click="importData">Import Excel</CButton>
 
       </CCardHeader>
       <CCardBody>
@@ -16,7 +17,7 @@
           <thead>
           <tr>
             <template v-for="i in report.field_cnt">
-              <th  :style="{'background-color': getColor}" style="color: white;" scope="col">{{
+              <th :style="{'background-color': getColor}" style="color: white;" scope="col">{{
                   report[`field${i}_name`]
                 }}
               </th>
@@ -146,4 +147,11 @@ export default {
   }
 }
 </script>
+
+
+<style lang="scss">
+.color-red {
+  color: red;
+}
+</style>
 

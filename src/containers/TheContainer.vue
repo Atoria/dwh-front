@@ -11,7 +11,7 @@
           </CContainer>
         </main>
       </div>
-<!--      <TheFooter/>-->
+      <!--      <TheFooter/>-->
     </CWrapper>
   </div>
 </template>
@@ -27,6 +27,12 @@ export default {
     TheSidebar,
     TheHeader,
     TheFooter
+  },
+  mounted() {
+    let userData = JSON.parse(localStorage.getItem('user'))
+    if (!userData) {
+      this.$router.push({name: 'Login'})
+    }
   }
 }
 </script>

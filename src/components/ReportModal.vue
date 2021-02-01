@@ -7,7 +7,7 @@
   >
     <CForm>
       <CRow>
-        <CCol md="12">
+        <CCol md="8">
           <CInput
               v-model="reportModal.model.report_name"
               description="Fill New Report Name."
@@ -15,7 +15,7 @@
           />
         </CCol>
 
-        <CCol md="12">
+        <CCol md="4">
 
           <CSelect
               @change=""
@@ -77,9 +77,9 @@
     <CAlert v-if="hasErrors" show color="danger" class="mt-4">{{ error }}</CAlert>
 
     <template v-slot:footer>
-      <CButton color="primary" @click="save">Save</CButton>
+      <CButton color="success" @click="save">Save</CButton>
       <CButton
-          color="secondary"
+          color="danger"
           @click="(value) => $store.commit('hideReportModal')"
       >Cancel
       </CButton>

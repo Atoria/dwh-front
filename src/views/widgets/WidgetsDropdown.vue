@@ -19,7 +19,7 @@ export default {
 .folder {
   font-size: 15px;
   text-align: center;
-  padding: 10px;
+  padding: 15px;
   margin-bottom: 0;
 }
 

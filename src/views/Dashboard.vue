@@ -2,10 +2,15 @@
   <div>
     <CCard>
       <CCardHeader>
-        <CInput
-            placeholder="Search Report"
-            v-model="search"
-        />
+        <div class="row">
+          <div class="col-sm-4 offset-sm-4">
+            <CInput placeholder="Search Report" v-model="search">
+              <template #prepend-content>
+                <CIcon name="cil-magnifying-glass"/>
+              </template>
+            </CInput>
+          </div>
+        </div>
       </CCardHeader>
       <CCardBody>
         <CRow>
