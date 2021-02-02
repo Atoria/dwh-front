@@ -157,8 +157,10 @@ export default {
         ReportsService.deleteReport(report.id).then((response) => {
           if (response.body.success) {
             this.getData();
+            this.$toasted.success('Deleted Successfully')
           } else {
-            //TODO TOASTER
+            this.$toasted.error('Error Occured')
+
           }
         })
       }
@@ -194,8 +196,9 @@ export default {
       ReportsService.triggerDel(report.id).then((response) => {
         if (response.body.success) {
           report.del_flag = !report.del_flag
+          this.$toasted.success('Updated Successfully')
         } else {
-          //TODO TOASTER
+          this.$toasted.error('Error Occurred')
         }
       })
     }

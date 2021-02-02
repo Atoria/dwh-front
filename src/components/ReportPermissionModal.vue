@@ -1,7 +1,7 @@
 <template>
   <CModal
       title="Manage Permissions"
-      size="sm"
+      :close-on-backdrop="false"
       :show.sync="permissionModal.show"
   >
 
@@ -88,9 +88,11 @@ export default {
 
       ReportAccessService.saveAccess(params).then((response) => {
         if (response.body.success) {
+          this.$toasted.success('Saved Successfully')
           this.$store.commit('hidePermissionModal')
         } else {
-          //TODO SHOW TOASTER
+          this.$toasted.error('Error Occured')
+
         }
       })
     }

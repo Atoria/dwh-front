@@ -3,15 +3,24 @@
 
     <CCard>
       <CCardHeader>
-        <h5 class="d-inline-block mt-1 pt-2 red d-inline-block mr-1">Sample Structure for </h5>
-        <h6 class="d-inline-block color-red"><i> '{{ report.report_name }}'</i></h6>
+        <!--        <h5 class="d-inline-block mt-1 pt-2 red d-inline-block mr-1">Excel Sample Structure for: </h5>-->
+        <h5 class="d-inline-block color-red mt-1 pt-2">{{ report.report_name }}</h5>
 
 
-        <CButton color="dark" class="px-4 float-right mt-2" @click="importData">Import Excel</CButton>
+        <CButton color="dark" class="px-4 float-right mt-1" @click="importData">Import Excel</CButton>
 
       </CCardHeader>
       <CCardBody>
         <input id="fileUpload" type="file" @change="chooseFile" hidden>
+
+
+        <div v-if="report.report_descr">
+          <h5>Report Description:</h5>
+          <p> {{ report.report_descr }}</p>
+          <hr>
+        </div>
+
+        <h5>Excel Sample Structure:</h5>
 
         <table class="table table-striped table-bordered" style="width: auto">
           <thead>
@@ -31,7 +40,7 @@
             <template v-for="i in report.field_cnt">
 
               <td>{{
-                  report[`field${i}_type`] + ' ' + (report[`field${i}_default`] ? ' ( Default: ' + report[`field${i}_default`] + ')' : '')
+                  report[`field${i}_type`] + ' ' + (report[`field${i}_default`] ? ' (' + report[`field${i}_default`] + ')' : '')
                 }}
               </td>
             </template>
@@ -50,24 +59,20 @@
         :show.sync="showLoadingModal"
         class="loading-modal"
     >
-
       <template v-slot:body-wrapper>
         <div style="height: 150px">
           <div style="display: block; margin-left: 45%; margin-top: 50px">
             <vue-loaders-ball-scale-ripple scale="2" color="red"/>
           </div>
-
         </div>
-
       </template>
-
 
       <template v-slot:footer>
         <span></span>
       </template>
-
     </CModal>
 
+    <excel-data ref="excelData" v-if="session_id" :session_id="session_id" :report="report"></excel-data>
 
   </div>
 </template>
@@ -75,6 +80,7 @@
 <script>
 
 import {ReportsService} from "@/views/report/reports.service";
+import ExcelData from "@/views/report/excelData/ExcelData";
 
 export default {
   name: 'Report',
@@ -82,8 +88,13 @@ export default {
     return {
       report: null,
       showLoadingModal: false,
-      processType: ''
+      processType: '',
+      session_id: null,
+      imported: {}
     }
+  },
+  components: {
+    ExcelData
   },
   computed: {
     getColor() {
@@ -108,26 +119,42 @@ export default {
       document.getElementById("fileUpload").click()
     },
     chooseFile(event) {
+      this.session_id = null;
       this.showLoadingModal = true;
       this.processType = 'Importing'
       let formData = new FormData();
       formData.append('file', event.target.files[0]);
+      formData.append('report_id', this.$route.params.id)
       ReportsService.importFile(formData).then((response) => {
         document.getElementById('fileUpload').value = '';
+        this.showLoadingModal = false;
+        this.$toasted.success('Imported Successfully')
+
         if (response.body.success) {
-          this.processType = 'Generating'
-          ReportsService.downloadFile(this.$route.params.id).then((res) => {
-            let bytes = new Uint8Array(res.body.buffer.data); // pass your byte response to this constructor
-            let blob = new Blob([bytes], {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});// change resultByte to bytes
-            let link = document.createElement('a');
-            link.href = window.URL.createObjectURL(blob);
-            link.download = `${this.report.report_name}.xlsx`;
-            link.click();
-            this.showLoadingModal = false;
+          this.session_id = response.body.session_id;
+          setTimeout(() => {
+            this.$refs.excelData.loadData();
           })
+        } else {
+          this.$toasted.error('Error Occured')
         }
       })
-    }
+    },
+    downloadReport() {
+      if (!this.session_id) {
+        this.$toasted.error('Can not find session')
+        return;
+      }
+      ReportsService.downloadFile(this.$route.params.id, this.session_id).then((res) => {
+        this.showLoadingModal = false;
+        let bytes = new Uint8Array(res.body.buffer.data); // pass your byte response to this constructor
+        let blob = new Blob([bytes], {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});// change resultByte to bytes
+        let link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = `${this.report.report_name}.xlsx`;
+        link.click();
+      })
+    },
   },
   mounted() {
     ReportsService.getReport(this.$route.params.id).then((res) => {

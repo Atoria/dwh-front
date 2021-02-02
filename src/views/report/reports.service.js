@@ -19,8 +19,8 @@ export class ReportsService {
         return Vue.http.post(AppSettings.getUrl() + '/reports/import', formData);
     }
 
-    static downloadFile(id) {
-        return Vue.http.get(AppSettings.getUrl() + '/reports/download-excel/' + id, {responseType: 'blob'});
+    static downloadFile(id, session_id) {
+        return Vue.http.get(AppSettings.getUrl() + '/reports/download-excel/' + id + '/' + session_id, {responseType: 'blob'});
     }
 
     static deleteReport(id) {

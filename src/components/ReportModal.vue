@@ -26,11 +26,22 @@
           />
         </CCol>
 
+
+        <CCol md="12">
+          <CTextarea
+              v-model="reportModal.model.report_descr"
+              label="Report Description"
+              placeholder="Fill Report Description"
+              rows="9"
+          />
+        </CCol>
+
         <CCol md="12">
           <CTextarea
               v-model="reportModal.model.report_select"
               label="Report Select"
               placeholder="Fill Report Select"
+              description="Don't forget to filter by ':SESSION_ID' and ':ROW_TYPE'"
               rows="9"
           />
         </CCol>

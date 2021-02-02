@@ -31,6 +31,7 @@ const state = {
             report_name: null,
             column_number: 0,
             report_select: null,
+            report_descr: null,
             fields: []
         }
     },
@@ -43,6 +44,7 @@ const mutations = {
         state[variable] = value
     },
     showReportModal(state, payload) {
+        console.log(payload);
         state.reportModal.model.fields = [];
         for (let i = 0; i < 10; i++) {
             state.reportModal.model.fields.push({field_type: 'number', field_name: '', field_default: ''})
@@ -69,8 +71,8 @@ const mutations = {
                 report_name: null,
                 column_number: 0,
                 report_select: null,
+                report_descr: null
             }
-
         }
 
         state.reportModal.show = true;
@@ -105,9 +107,9 @@ const mutations = {
 
 
 const actions = {
-    getUsers({ commit }, payload) {
+    getUsers({commit}, payload) {
         AuthService.getUsers().then((response) => {
-            commit("set", ['users' , response.body.data]);
+            commit("set", ['users', response.body.data]);
         })
 
     }

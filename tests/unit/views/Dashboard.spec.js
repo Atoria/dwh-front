@@ -6,7 +6,7 @@ import Dashboard from '@/views/Dashboard'
 
 Vue.use(CoreuiVue)
 
-describe('Report.vue', () => {
+describe('ExcelData.vue', () => {
   it('has a name', () => {
     expect(Dashboard.name).toBe('Dashboard')
   })

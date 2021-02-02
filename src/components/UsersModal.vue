@@ -114,7 +114,8 @@
 
 
                     <CCol md="2">
-                      <CButton class="margin-top-28 float-right" color="success" @click="updateUser(userUpdate[user.id])">Update
+                      <CButton class="margin-top-28 float-right" color="success"
+                               @click="updateUser(userUpdate[user.id])">Update
                       </CButton>
                     </CCol>
 
@@ -203,20 +204,24 @@ export default {
     deleteUser(user) {
       AuthService.deleteUser(user.id).then((response) => {
         if (response.body.success) {
+          this.$toasted.success('Deleted Successfully')
+
           this.$store.dispatch('getUsers');
           // this.$store.commit('set', ['users', newUsers])
         } else {
-          //TODO TOASTER
+          this.$toasted.error('Error Occured')
         }
       })
     },
     delFlag(user) {
       AuthService.triggerDel(user.id).then((response) => {
         if (response.body.success) {
+          this.$toasted.success('Updated Successfully')
+
           this.$store.dispatch('getUsers');
           // this.refreshView();
         } else {
-          //TODO TOASTER
+          this.$toasted.error('Error Occured')
         }
       })
     },
@@ -225,18 +230,19 @@ export default {
     },
     updateUser(updateData) {
       console.log(updateData);
-      AuthService.updateUser(updateData).then((response) =>{
-        if(response.body.success){
-          this.$store.dispatch('getUsers');
-        }else{
-          //TODO TOASTER
+      AuthService.updateUser(updateData).then((response) => {
+        if (response.body.success) {
+          this.$toasted.success('Updated Successfully')
 
+          this.$store.dispatch('getUsers');
+        } else {
+          this.$toasted.error('Error Occurred')
         }
         console.log(response);
       })
     }
+  },
 
-  }
 }
 </script>
 
