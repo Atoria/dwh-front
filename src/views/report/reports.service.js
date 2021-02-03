@@ -30,4 +30,8 @@ export class ReportsService {
     static triggerDel(id) {
         return Vue.http.post(AppSettings.getUrl() + '/reports/trigger-del', {id})
     }
+
+    static abort(session_id) {
+        return Vue.http.post(AppSettings.getUrl() + '/reports/abort',{session_id})
+    }
 }

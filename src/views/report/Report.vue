@@ -53,26 +53,42 @@
 
 
     <CModal
-        :title="processType"
         size="sm"
         :closeOnBackdrop="false"
         :show.sync="showLoadingModal"
         class="loading-modal"
+        id="import-modal-loader"
     >
+      <template v-slot:header-wrapper>
+        <span></span>
+      </template>
       <template v-slot:body-wrapper>
         <div style="height: 150px">
-          <div style="display: block; margin-left: 45%; margin-top: 50px">
-            <vue-loaders-ball-scale-ripple scale="2" color="red"/>
+          <div style="display: block; margin-left: 41%; margin-top: 70px">
+            <span class="position-absolute mt-3 mr-1">{{ processType }}...</span>
+            <vue-loaders-ball-scale-ripple scale="3" color="green"/>
           </div>
         </div>
       </template>
-
       <template v-slot:footer>
-        <span></span>
+        <div class="w-100" style="text-align: center">
+          <hr>
+          <CButton color="danger"
+                   size="sm"
+                   class="px-4"
+                   :disabled="disableAbort"
+                   @click="abortImport">Abort
+          </CButton>
+        </div>
       </template>
     </CModal>
 
-    <excel-data ref="excelData" v-if="session_id" :session_id="session_id" :report="report"></excel-data>
+    <excel-data ref="excelData"
+                v-if="session_id"
+                :session_id="session_id"
+                :report="report"
+                @generate-report="downloadReport"
+    ></excel-data>
 
   </div>
 </template>
@@ -81,14 +97,22 @@
 
 import {ReportsService} from "@/views/report/reports.service";
 import ExcelData from "@/views/report/excelData/ExcelData";
+import {uuid} from 'uuidv4';
+import {v4} from "uuid";
 
 export default {
   name: 'Report',
   data() {
     return {
+      tr: true,
+      disableAbort: false,
       report: null,
       showLoadingModal: false,
       processType: '',
+      processTypes: {
+        importing: 'Importing',
+        generating: 'Generating'
+      },
       session_id: null,
       imported: {}
     }
@@ -115,28 +139,42 @@ export default {
     }
   },
   methods: {
+    abortImport() {
+      this.disableAbort = true;
+      ReportsService.abort(this.session_id).then((response) => {
+        if (response.body.success) {
+          this.$toasted.success('Process being aborted...')
+        } else {
+          this.$toasted.error('Error Occurred')
+        }
+      })
+
+    },
     importData() {
       document.getElementById("fileUpload").click()
     },
     chooseFile(event) {
+      this.disableAbort = false;
       this.session_id = null;
       this.showLoadingModal = true;
-      this.processType = 'Importing'
+      this.processType = this.processTypes.importing
+      this.session_id = v4();
       let formData = new FormData();
       formData.append('file', event.target.files[0]);
       formData.append('report_id', this.$route.params.id)
+      formData.append('session_id', this.session_id)
       ReportsService.importFile(formData).then((response) => {
         document.getElementById('fileUpload').value = '';
         this.showLoadingModal = false;
-        this.$toasted.success('Imported Successfully')
-
         if (response.body.success) {
+          this.$toasted.success('Imported Successfully')
           this.session_id = response.body.session_id;
           setTimeout(() => {
             this.$refs.excelData.loadData();
           })
         } else {
-          this.$toasted.error('Error Occured')
+          this.session_id = null
+          this.$toasted.error(response.body.error)
         }
       })
     },
@@ -145,14 +183,19 @@ export default {
         this.$toasted.error('Can not find session')
         return;
       }
+      this.showLoadingModal = true;
+      this.processType = this.processTypes.generating;
+
       ReportsService.downloadFile(this.$route.params.id, this.session_id).then((res) => {
         this.showLoadingModal = false;
-        let bytes = new Uint8Array(res.body.buffer.data); // pass your byte response to this constructor
-        let blob = new Blob([bytes], {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});// change resultByte to bytes
-        let link = document.createElement('a');
-        link.href = window.URL.createObjectURL(blob);
-        link.download = `${this.report.report_name}.xlsx`;
-        link.click();
+        if (res.body.success) {
+          let bytes = new Uint8Array(res.body.buffer.data); // pass your byte response to this constructor
+          let blob = new Blob([bytes], {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});// change resultByte to bytes
+          let link = document.createElement('a');
+          link.href = window.URL.createObjectURL(blob);
+          link.download = `${this.report.report_name}.xlsx`;
+          link.click();
+        }
       })
     },
   },

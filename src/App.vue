@@ -11,4 +11,11 @@ export default {
 <style lang="scss">
   // Import Main styles for this application
   @import 'assets/scss/style';
+
+
+  #import-modal-loader{
+    .modal-content{
+      height: 240px;
+    }
+  }
 </style>

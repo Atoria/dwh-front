@@ -1,11 +1,14 @@
 <template>
-  <div v-if="total > 0 " id="excel-data-table">
+  <div v-if="total > 0 ">
+    <div id="bla">
+      <div id="blo"></div>
+    </div>
     <CCard>
       <CCardHeader>
         <h5 class="d-inline-block color-red mt-1 pt-2">{{ report.report_name }}</h5>
 
 
-        <CButton color="dark" class="px-4 float-right mt-1" @click="importData">Import Excel</CButton>
+        <CButton color="dark" class="px-4 float-right mt-1" @click="generateReport">Generate Report</CButton>
 
       </CCardHeader>
 
@@ -15,7 +18,7 @@
           <vue-loaders-ball-scale-ripple scale="1" color="red"/>
         </div>
 
-        <table class="table table-striped table-bordered" v-if="!loading">
+        <table class="table table-striped table-bordered" @click="tableClickListener" v-if="!loading">
           <thead>
           <tr>
             <th :style="{'background-color': getColor}" style="color: white;" scope="col" v-for="index in 10">
@@ -27,9 +30,11 @@
           <tbody>
           <tr v-for="item in data">
             <td v-for="index in 10">
-              <p :key="`VIEW-FIELD${index}_VALUE`" v-if="!item._EDITING" @click="enableEditing(item)">
+              <p :key="`VIEW-${item.ID}-${index}`" :id="`VIEW-${item.ID}-${index}`" v-if="!item._EDITING"
+                 @click="enableEditing(item)">
                 {{ item[`FIELD${index}_VALUE`] }} </p>
-              <CInput :key="`EDIT-FIELD${index}_VALUE`"
+              <CInput :key="`EDIT-${item.ID}-${index}`"
+                      :id="`EDIT-${item.ID}-${index}`"
                       v-if="item._EDITING"
                       v-model=" item[`FIELD${index}_VALUE`]"
                       @update:value="updatedValue($event, item)"
@@ -71,6 +76,7 @@ export default {
       pages: 0,
       header: [],
       loading: false,
+      clickedTable: false
     }
   },
   computed: {
@@ -79,6 +85,12 @@ export default {
     }
   },
   methods: {
+    generateReport() {
+      this.$emit('generate-report')
+    },
+    tableClickListener() {
+      this.clickedTable = true;
+    },
     enableEditing(item) {
       console.log('aaa');
       item._EDITING = true
@@ -122,6 +134,19 @@ export default {
     }
   },
   mounted() {
+    let vm = this;
+    document.addEventListener('click', (event) => {
+      if (!vm.clickedTable) {
+        vm.data = vm.data.map((elem) => {
+          elem._EDITING = false;
+          return elem;
+        })
+      }
+      vm.clickedTable = false;
+
+
+      return true
+    })
 
   }
 
