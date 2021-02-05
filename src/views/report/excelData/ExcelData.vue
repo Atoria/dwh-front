@@ -61,8 +61,8 @@
 
 <script>
 
-
 import {ExcelDataService} from "@/views/report/excelData/excel-data.service";
+import {AppSettings} from "@/AppSettings";
 
 export default {
   name: 'Report',
@@ -112,9 +112,11 @@ export default {
       let params = {
         limit: this.perPage,
         offset: (this.currentPage - 1) * this.perPage,
-        session_id: this.session_id
+        session_id: this.session_id,
+        report_id: this.report.id
       }
       this.loading = true;
+
 
       ExcelDataService.getExcelData(params).then((response) => {
         if (response.body.success) {
@@ -134,6 +136,7 @@ export default {
     }
   },
   mounted() {
+
     let vm = this;
     document.addEventListener('click', (event) => {
       if (!vm.clickedTable) {

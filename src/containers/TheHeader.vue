@@ -64,6 +64,7 @@ export default {
   },
   methods: {
     logout() {
+      this.$socket.disconnect();
       localStorage.removeItem('user');
       this.$router.push('/auth/login')
     },

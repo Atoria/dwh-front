@@ -1,13 +1,27 @@
 <template>
   <div v-if="report">
 
+    <CCard v-if="isImporting">
+      <CCardHeader>
+        <h5 class="d-inline-block color-red mt-1 pt-2">{{ processType }}...</h5>
+        <CButton color="danger" class="px-4 float-right mt-1" :disabled="disableAbort" @click="abortImport">Abort
+        </CButton>
+      </CCardHeader>
+      <CCardBody>
+        <CProgress v-if="counter" :value="counter" :max="max" show-percentage animated
+                   color="gradient-success"></CProgress>
+        <vue-loaders-ball-pulse v-if="!counter" class="d-block text-center" scale="1" color="grey"/>
+      </CCardBody>
+    </CCard>
+
     <CCard>
       <CCardHeader>
         <!--        <h5 class="d-inline-block mt-1 pt-2 red d-inline-block mr-1">Excel Sample Structure for: </h5>-->
         <h5 class="d-inline-block color-red mt-1 pt-2">{{ report.report_name }}</h5>
 
 
-        <CButton color="dark" class="px-4 float-right mt-1" @click="importData">Import Excel</CButton>
+        <CButton color="dark" class="px-4 float-right mt-1" :disabled="isImporting" @click="importData">Import Excel
+        </CButton>
 
       </CCardHeader>
       <CCardBody>
@@ -52,37 +66,6 @@
     </CCard>
 
 
-    <CModal
-        size="sm"
-        :closeOnBackdrop="false"
-        :show.sync="showLoadingModal"
-        class="loading-modal"
-        id="import-modal-loader"
-    >
-      <template v-slot:header-wrapper>
-        <span></span>
-      </template>
-      <template v-slot:body-wrapper>
-        <div style="height: 150px">
-          <div style="display: block; margin-left: 41%; margin-top: 70px">
-            <span class="position-absolute mt-3 mr-1">{{ processType }}...</span>
-            <vue-loaders-ball-scale-ripple scale="3" color="green"/>
-          </div>
-        </div>
-      </template>
-      <template v-slot:footer>
-        <div class="w-100" style="text-align: center">
-          <hr>
-          <CButton color="danger"
-                   size="sm"
-                   class="px-4"
-                   :disabled="disableAbort"
-                   @click="abortImport">Abort
-          </CButton>
-        </div>
-      </template>
-    </CModal>
-
     <excel-data ref="excelData"
                 v-if="session_id"
                 :session_id="session_id"
@@ -95,26 +78,29 @@
 
 <script>
 
+
 import {ReportsService} from "@/views/report/reports.service";
 import ExcelData from "@/views/report/excelData/ExcelData";
 import {uuid} from 'uuidv4';
 import {v4} from "uuid";
+import {AppSettings} from "@/AppSettings";
 
 export default {
   name: 'Report',
   data() {
     return {
-      tr: true,
+      counter: 0,
+      max: 100,
+      isImporting: true,
       disableAbort: false,
       report: null,
-      showLoadingModal: false,
       processType: '',
       processTypes: {
         importing: 'Importing',
         generating: 'Generating'
       },
       session_id: null,
-      imported: {}
+      imported: {},
     }
   },
   components: {
@@ -122,41 +108,68 @@ export default {
   },
   computed: {
     getColor() {
-      // if (this.report.report_color === 'primary') {
-      //   return '#321fdb'
-      // } else if (this.report.report_color === 'secondary') {
-      //   return '#6c757d'
-      // } else if (this.report.report_color === 'success') {
-      //   return '#28a745'
-      // } else if (this.report.report_color === 'danger') {
-      //   return '#dc3545'
-      // } else if (this.report.report_color === 'warning') {
-      //   return '#ffc107'
-      // } else if (this.report.report_color === 'info') {
-      //   return '#17a2b8'
-      // }
+
       return '#636f83'
     }
+  },
+  sockets: {
+    importStatus(data) {
+      if (data.session === this.session_id) {
+        this.counter = data.progress ? data.progress : 0;
+        if (data.type) {
+          this.processType = data.type;
+        }
+      }
+    },
+    importFinished(data) {
+      if (data.session === this.session_id) {
+        this.disableAbort = true;
+        this.isImporting = false;
+
+        console.log('FINISH');
+        ReportsService.importComplete(this.session_id).then((response) => {
+          console.log(response);
+          if (response.body.success) {
+            this.$refs.excelData.loadData();
+            this.$toasted.success('Finished Import')
+          } else {
+            this.$toasted.error('Error Occurred')
+          }
+        })
+      }
+    },
+    generatedSuccess(data) {
+      this.isImporting = false;
+      console.log('BUFFER', data);
+      let bytes = new Uint8Array(data.buffer); // pass your byte response to this constructor
+      let blob = new Blob([bytes], {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});// change resultByte to bytes
+      let link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.download = `${this.report.report_name}.xlsx`;
+      link.click();
+    },
+
   },
   methods: {
     abortImport() {
       this.disableAbort = true;
       ReportsService.abort(this.session_id).then((response) => {
         if (response.body.success) {
+          this.isImporting = false;
           this.$toasted.success('Process being aborted...')
         } else {
           this.$toasted.error('Error Occurred')
         }
       })
-
     },
     importData() {
       document.getElementById("fileUpload").click()
     },
     chooseFile(event) {
+      this.counter = 0;
       this.disableAbort = false;
       this.session_id = null;
-      this.showLoadingModal = true;
+      this.isImporting = true;
       this.processType = this.processTypes.importing
       this.session_id = v4();
       let formData = new FormData();
@@ -165,15 +178,11 @@ export default {
       formData.append('session_id', this.session_id)
       ReportsService.importFile(formData).then((response) => {
         document.getElementById('fileUpload').value = '';
-        this.showLoadingModal = false;
         if (response.body.success) {
-          this.$toasted.success('Imported Successfully')
-          this.session_id = response.body.session_id;
-          setTimeout(() => {
-            this.$refs.excelData.loadData();
-          })
+          this.$toasted.success('Started Import')
         } else {
           this.session_id = null
+          this.isImporting = false;
           this.$toasted.error(response.body.error)
         }
       })
@@ -183,18 +192,13 @@ export default {
         this.$toasted.error('Can not find session')
         return;
       }
-      this.showLoadingModal = true;
+      this.isImporting = true;
       this.processType = this.processTypes.generating;
+      this.disableAbort = false;
 
       ReportsService.downloadFile(this.$route.params.id, this.session_id).then((res) => {
-        this.showLoadingModal = false;
         if (res.body.success) {
-          let bytes = new Uint8Array(res.body.buffer.data); // pass your byte response to this constructor
-          let blob = new Blob([bytes], {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});// change resultByte to bytes
-          let link = document.createElement('a');
-          link.href = window.URL.createObjectURL(blob);
-          link.download = `${this.report.report_name}.xlsx`;
-          link.click();
+          this.$toasted.success('Started Generation')
         }
       })
     },
@@ -205,15 +209,14 @@ export default {
         this.report = res.body.data
       }
     })
-  },
-  beforeRouteLeave: function (to, from, next) {
-    if (!this.showLoadingModal) {
-      return next()
-    }
-    if (confirm('Loading is in progress do you wish to abond?')) {
-      return next();
-    }
-    return next(false)
+
+    ReportsService.getPendingImport({report_id: this.$route.params.id}).then((response) => {
+      let pending = response.body.pending;
+      this.isImporting = pending !== null;
+      this.session_id = pending ? pending.SESSION_ID : null
+      console.log(pending);
+    })
+
   }
 }
 </script>

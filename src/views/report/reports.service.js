@@ -32,6 +32,18 @@ export class ReportsService {
     }
 
     static abort(session_id) {
-        return Vue.http.post(AppSettings.getUrl() + '/reports/abort',{session_id})
+        return Vue.http.post(AppSettings.getUrl() + '/reports/abort', {session_id})
+    }
+
+    static importComplete(session_id) {
+        return Vue.http.post(AppSettings.getUrl() + '/reports/import-complete', {session_id})
+    }
+
+    static getPendingImport(params) {
+        return Vue.http.get(AppSettings.getUrl() + '/reports/import-pending', {params})
+    }
+
+    static getLatestComplete(params) {
+        return Vue.http.get(AppSettings.getUrl() + '/reports/latest-complete-import', {params})
     }
 }

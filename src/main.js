@@ -13,6 +13,29 @@ import {fas} from '@fortawesome/free-solid-svg-icons'
 import {FontAwesomeIcon} from '@fortawesome/vue-fontawesome'
 import store from './store'
 import Toasted from 'vue-toasted';
+import VueSocketIO from 'vue-socket.io';
+import io from 'socket.io-client';
+import {AppSettings} from "@/AppSettings";
+
+
+const socketInstance = io(AppSettings.getUrl(), {
+    transports: ['websocket'],
+    rejectUnauthorized: false,
+    reconnection: true,
+    pingInterval: 5000,
+    pingTimeout: 30000,
+    reconnectionDelay: 1000,
+    reconnectionDelayMax: 5000,
+    reconnectionAttempts: 15,
+    autoConnect: false,
+    origins: '*',
+    query: {token: localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')).token : null},
+});
+
+Vue.use(new VueSocketIO({
+    debug: false,
+    connection: socketInstance,
+}));
 
 
 Vue.use(Toasted, {

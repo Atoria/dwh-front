@@ -29,6 +29,7 @@ export default {
     TheFooter
   },
   mounted() {
+    this.$socket.connect()
     let userData = JSON.parse(localStorage.getItem('user'))
     if (!userData) {
       this.$router.push({name: 'Login'})
