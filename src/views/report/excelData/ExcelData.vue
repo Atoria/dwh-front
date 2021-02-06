@@ -8,7 +8,9 @@
         <h5 class="d-inline-block color-red mt-1 pt-2">{{ report.report_name }}</h5>
 
 
-        <CButton color="dark" class="px-4 float-right mt-1" @click="generateReport">Generate Report</CButton>
+        <CButton color="dark" class="px-4 float-right mt-1" @click="generateReport" :disabled="isImporting">Generate
+          Report
+        </CButton>
 
       </CCardHeader>
 
@@ -21,7 +23,8 @@
         <table class="table table-striped table-bordered" @click="tableClickListener" v-if="!loading">
           <thead>
           <tr>
-            <th :style="{'background-color': getColor}" style="color: white;" scope="col" v-for="index in 10">
+            <th width="10" :style="{'background-color': getColor}" style="color: white;" scope="col"
+                v-for="index in 10">
               {{ header[`FIELD${index}_VALUE`] !== null ? header[`FIELD${index}_VALUE`] : 'NULL' }}
             </th>
           </tr>
@@ -29,16 +32,18 @@
           </thead>
           <tbody>
           <tr v-for="item in data">
-            <td v-for="index in 10">
-              <p :key="`VIEW-${item.ID}-${index}`" :id="`VIEW-${item.ID}-${index}`" v-if="!item._EDITING"
-                 @click="enableEditing(item)">
-                {{ item[`FIELD${index}_VALUE`] }} </p>
-              <CInput :key="`EDIT-${item.ID}-${index}`"
-                      :id="`EDIT-${item.ID}-${index}`"
-                      v-if="item._EDITING"
-                      v-model=" item[`FIELD${index}_VALUE`]"
-                      @update:value="updatedValue($event, item)"
-              />
+            <td width="10" v-for="index in 10">
+              <div>
+                <p :key="`VIEW-${item.ID}-${index}`" :id="`VIEW-${item.ID}-${index}`" v-if="!item._EDITING"
+                   @click="enableEditing(item)">
+                  {{ item[`FIELD${index}_VALUE`] }} </p>
+                <CInput :key="`EDIT-${item.ID}-${index}`"
+                        :id="`EDIT-${item.ID}-${index}`"
+                        v-if="item._EDITING"
+                        v-model=" item[`FIELD${index}_VALUE`]"
+                        @update:value="updatedValue($event, item)"
+                />
+              </div>
             </td>
           </tr>
           </tbody>
@@ -63,6 +68,7 @@
 
 import {ExcelDataService} from "@/views/report/excelData/excel-data.service";
 import {AppSettings} from "@/AppSettings";
+import {mapState} from "vuex";
 
 export default {
   name: 'Report',
@@ -80,6 +86,9 @@ export default {
     }
   },
   computed: {
+    ...mapState({
+      isImporting: state => state.isImporting,
+    }),
     getColor() {
       return '#636f83'
     }

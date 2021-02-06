@@ -28,6 +28,18 @@ export default {
     TheHeader,
     TheFooter
   },
+  sockets:{
+    generatedSuccess(data) {
+      this.$store.commit('set', ['isImporting', false])
+      console.log('BUFFER', data);
+      let bytes = new Uint8Array(data.buffer); // pass your byte response to this constructor
+      let blob = new Blob([bytes], {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});// change resultByte to bytes
+      let link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.download = `${data.report_name}.xlsx`;
+      link.click();
+    },
+  },
   mounted() {
     this.$socket.connect()
     let userData = JSON.parse(localStorage.getItem('user'))

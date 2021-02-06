@@ -84,6 +84,7 @@ import ExcelData from "@/views/report/excelData/ExcelData";
 import {uuid} from 'uuidv4';
 import {v4} from "uuid";
 import {AppSettings} from "@/AppSettings";
+import {mapState} from "vuex";
 
 export default {
   name: 'Report',
@@ -91,7 +92,6 @@ export default {
     return {
       counter: 0,
       max: 100,
-      isImporting: true,
       disableAbort: false,
       report: null,
       processType: '',
@@ -107,8 +107,10 @@ export default {
     ExcelData
   },
   computed: {
+    ...mapState({
+      isImporting: state => state.isImporting,
+    }),
     getColor() {
-
       return '#636f83'
     }
   },
@@ -124,7 +126,7 @@ export default {
     importFinished(data) {
       if (data.session === this.session_id) {
         this.disableAbort = true;
-        this.isImporting = false;
+        this.$store.commit('set', ['isImporting', false])
 
         console.log('FINISH');
         ReportsService.importComplete(this.session_id).then((response) => {
@@ -138,24 +140,13 @@ export default {
         })
       }
     },
-    generatedSuccess(data) {
-      this.isImporting = false;
-      console.log('BUFFER', data);
-      let bytes = new Uint8Array(data.buffer); // pass your byte response to this constructor
-      let blob = new Blob([bytes], {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});// change resultByte to bytes
-      let link = document.createElement('a');
-      link.href = window.URL.createObjectURL(blob);
-      link.download = `${this.report.report_name}.xlsx`;
-      link.click();
-    },
-
   },
   methods: {
     abortImport() {
       this.disableAbort = true;
       ReportsService.abort(this.session_id).then((response) => {
         if (response.body.success) {
-          this.isImporting = false;
+          this.$store.commit('set', ['isImporting', false])
           this.$toasted.success('Process being aborted...')
         } else {
           this.$toasted.error('Error Occurred')
@@ -166,10 +157,13 @@ export default {
       document.getElementById("fileUpload").click()
     },
     chooseFile(event) {
+      //HIDE EXCEL DATA WHEN NEW FILE IS IMPORTING
+      this.$refs.excelData.total = 0;
+
       this.counter = 0;
       this.disableAbort = false;
       this.session_id = null;
-      this.isImporting = true;
+      this.$store.commit('set', ['isImporting', true])
       this.processType = this.processTypes.importing
       this.session_id = v4();
       let formData = new FormData();
@@ -182,7 +176,7 @@ export default {
           this.$toasted.success('Started Import')
         } else {
           this.session_id = null
-          this.isImporting = false;
+          this.$store.commit('set', ['isImporting', false])
           this.$toasted.error(response.body.error)
         }
       })
@@ -192,7 +186,7 @@ export default {
         this.$toasted.error('Can not find session')
         return;
       }
-      this.isImporting = true;
+      this.$store.commit('set', ['isImporting', true])
       this.processType = this.processTypes.generating;
       this.disableAbort = false;
 
@@ -204,16 +198,32 @@ export default {
     },
   },
   mounted() {
+    //GET CURRENT REPORT DATA
     ReportsService.getReport(this.$route.params.id).then((res) => {
       if (res.body.success) {
         this.report = res.body.data
       }
     })
 
+
+    //CHECK IF NEW IMPORT IS IN PROGRESS
     ReportsService.getPendingImport({report_id: this.$route.params.id}).then((response) => {
       let pending = response.body.pending;
-      this.isImporting = pending !== null;
+      this.$store.commit('set', ['isImporting', pending !== null])
       this.session_id = pending ? pending.SESSION_ID : null
+
+      //FETCH LATEST IMPORTED FILE
+      if (!pending) {
+        ReportsService.getLatestComplete({report_id: this.$route.params.id}).then((response) => {
+          if (response.body.complete) {
+            this.session_id = response.body.complete.SESSION_ID;
+            setTimeout(()=>{
+              this.$refs.excelData.loadData();
+            })
+          }
+        })
+      }
+
       console.log(pending);
     })
 

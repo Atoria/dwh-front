@@ -7,6 +7,7 @@ Vue.use(Vuex)
 const state = {
     sidebarShow: 'responsive',
     sidebarMinimize: false,
+    isImporting:false,
     userModal: {
         show: false,
         model: {
